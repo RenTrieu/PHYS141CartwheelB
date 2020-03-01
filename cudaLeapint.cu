@@ -3,6 +3,8 @@
  *                 and CUDA
  */
 
+#include "cuda_runtime.h"
+#include "device_launch_parameters.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,79 +15,120 @@ int main(int argc, char **argv)
 {
     /* Declaring Variables */
     int n, mstep, nout, nstep;
-    double* rx = NULL;
-    double* ry = NULL;
-    double* rz = NULL;
-    double* vx = NULL;
-    double* vy = NULL;
-    double* vz = NULL;
+    float massBuffer[MAXPNT];
+    float rxBuffer[MAXPNT];
+    float ryBuffer[MAXPNT];
+    float rzBuffer[MAXPNT];
+    float vxBuffer[MAXPNT];
+    float vyBuffer[MAXPNT];
+    float vzBuffer[MAXPNT];
+    float* mass = NULL;
+    float* rx = NULL;
+    float* ry = NULL;
+    float* rz = NULL;
+    float* vx = NULL;
+    float* vy = NULL;
+    float* vz = NULL;
+    float* gm = NULL;
+    char * nBodyFile;
 
-    // double* rx, ry, rz, vx, vy, vz;
-    double tnow, dt;
-    double nMass;
+    float tnow, dt;
 
     /* GM Constants in AU^3/Day^2 */
-    double GMCONST[MAXPNT];
+    float GMCONST[MAXPNT];
     GMCONST[0] = 2.959E-4;
     for (int i = 1; i < MAXPNT; i++) {
         GMCONST[i] = 0.0;
     }
 
-    /* Setting up Initial Conditions */
-
     /* Number of astronomical bodies */
     if (argc <= 1) {
-        n = 10.0;
-        nMass = 0.0;
-    }
-    else if (argc <= 2) {
-        n = (int) atoi(argv[1]);
-        nMass = 0.0;
+        printf("Usage: %s [N-Body File]\n", argv[0]);
     }
     else {
-        n = (int) atoi(argv[1]);
-        nMass = (double) atof(argv[2]);
+        nBodyFile = argv[1];
     }
+
+    /* Parsing through the nBodyFile for celestial bodies */
+    printf("Reading values in from %s.\n", nBodyFile);
+    FILE* fp = fopen((const char *) nBodyFile, "r");
+
+    if (fp == NULL) {
+        return 0;
+    }
+
+    int lineNumber = 0;
+    char buffer[MAXBUFFER];
+    char * delimiters = " \t";
+    char * token;
+    char * s;
+
+    while (fgets(buffer, MAXBUFFER, fp)) {
+        s = buffer;
+        token = strtok(s, delimiters);
+        if (token != NULL) {
+            massBuffer[lineNumber] = atof(token);
+        }
+        token = strtok(NULL, delimiters);
+        if (token != NULL) {
+            rxBuffer[lineNumber] = atof(token);
+        }
+        token = strtok(NULL, delimiters);
+        if (token != NULL) {
+            ryBuffer[lineNumber] = atof(token);
+        }
+        token = strtok(NULL, delimiters);
+        if (token != NULL) {
+            rzBuffer[lineNumber] = atof(token);
+        }
+        token = strtok(NULL, delimiters);
+        if (token != NULL) {
+            vxBuffer[lineNumber] = atof(token);
+        }
+        token = strtok(NULL, delimiters);
+        if (token != NULL) {
+            vyBuffer[lineNumber] = atof(token);
+        }
+        token = strtok(NULL, delimiters);
+        if (token != NULL) {
+            vzBuffer[lineNumber] = atof(token);
+        }
+        lineNumber += 1;
+    }
+    n = lineNumber;
+    fclose(fp);
+
+    /* Allocating Unified Memory - accessible from CPU or GPU */
+    cudaSetDevice(0);
+    cudaMalloc(&mass, n*sizeof(float));
+    cudaMalloc(&rx, n*sizeof(float));
+    cudaMalloc(&ry, n*sizeof(float));
+    cudaMalloc(&rz, n*sizeof(float));
+    cudaMalloc(&vx, n*sizeof(float));
+    cudaMalloc(&vy, n*sizeof(float));
+    cudaMalloc(&vz, n*sizeof(float));
+    cudaMalloc(&gm, n*sizeof(float));
+
+
+    /* Copying memory to the device */
+    cudaMemcpy(mass, massBuffer, n*sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(rx, rxBuffer, n*sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(ry, ryBuffer, n*sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(rz, rzBuffer, n*sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(vx, vxBuffer, n*sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(vy, vyBuffer, n*sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(vz, vzBuffer, n*sizeof(float), cudaMemcpyHostToDevice);
+
 
     /* Setting the gravitational constant for the peripheral bodies */
-    for (int i = 1; i < MAXPNT; i++) {
-        GMCONST[i] = nMass;
+    for (int i = 0; i < n; i++) {
+        GMCONST[i] = massBuffer[i];
     }
+    cudaMemcpy(gm, GMCONST, n*sizeof(float), cudaMemcpyHostToDevice);
 
-    printf("Simulating %d particles with peripheral mass of %f\n", n, nMass);
 
     /* Setting initial time */
     tnow = 0.0;
-
-    /* Allocating Unified Memory - accessible from CPU or GPU */
-    cudaMallocManaged(&rx, n*sizeof(double));
-    cudaMallocManaged(&ry, n*sizeof(double));
-    cudaMallocManaged(&rz, n*sizeof(double));
-    cudaMallocManaged(&vx, n*sizeof(double));
-    cudaMallocManaged(&vy, n*sizeof(double));
-    cudaMallocManaged(&vz, n*sizeof(double));
-
-    /* Initializing Saturn */
-    rx[0] = 0.0;					/* set initial x position */
-    ry[0] = 0.0;                    /* set initial y position */
-    rz[0] = 0.0;                    /* set initial z position */
-    vx[0] = 0.0;					/* set initial x velocity */
-    vy[0] = 0.0;                    /* set initial y velocity */
-    vz[0] = 0.0;                    /* set initial z velocity */
-
-    /* Determining equidistant angles */
-    double nRadius = 0.001885*scaleFactor;           /* in AU * scaleFactor */
-    double nAng = 360.0 / ((double) (n-1));
-    double curAngle = nAng;
-    for (int i = 1; i < n; i++) {
-        rx[i] = nRadius*cos(curAngle*M_PI/180.0);
-        ry[i] = nRadius*sin(curAngle*M_PI/180.0);
-        rz[i] = 0.0;
-        vx[i] = sqrt(GMCONST[0]/nRadius)*sin(curAngle*M_PI/180.0);
-        vy[i] = -sqrt(GMCONST[0]/nRadius)*cos(curAngle*M_PI/180.0);
-        vz[i] = 0.0;
-        curAngle += nAng;
-    }
 
     /* next, set integration parameters */
 
@@ -93,56 +136,99 @@ int main(int argc, char **argv)
     nout = 4;                        /* steps between outputs    */
     dt = 1.0;                        /* timestep for integration */
 
+    /* Checking to see if n is a multiple of nThreads*deviceCount 
+       If not, then round down
+       (As seen in David's code) */
+    int nParticles = nThreads * int (float(n) / (nThreads));
+    if (nParticles != n) {
+        n = nParticles;
+    }
+
+    int numBlocks = n / nThreads;
+    if (numBlocks == 0) {
+        numBlocks = 1;
+    }
+
+    printf("numBlocks: %d\nnThreads: %d\n\nParticles: %d\n", numBlocks, nThreads, n);
+
     /* now, loop performing integration */
-    int blockSize = 256;
-    int numBlocks = (n + blockSize - 1) / blockSize;
 
     /* Harmonic Oscillator */
     {
         FILE* outFile;
         const char * filename;
-        const char * accelFormula;
-        accelFormula = "solGravity";
-        char accelTemp[strlen(accelFormula)+1];
-        for (int i = 0; i < strlen(accelFormula); i++) {
-            accelTemp[i] = accelFormula[i];
-        }
-        accelTemp[strlen(accelFormula)] = '\0';
-        filename = strcat(accelTemp, "3D.txt");
+        char * outBuffer = strtok(nBodyFile, ".");
+        filename = strcat(outBuffer, "Sim.txt");
         outFile = fopen(filename, "w");
 
-        leapstep<<<numBlocks, blockSize>>>(rx, ry, rz,
-                                           vx, vy, vz,
-                                           n, dt, GMCONST);
+        /* Progress Bar Initialization */
+        int maxBar = 30;
+        char outputBar[maxBar];
+        outputBar[0] = '|';
+        outputBar[maxBar - 1]= '|';
+        for (int i = 1; i < maxBar - 1; i++) {
+            outputBar[i] = ' ';
+        }
+
+        printstate(rxBuffer, ryBuffer, rzBuffer, 
+                   vxBuffer, vyBuffer, vzBuffer, n, tnow, outFile, filename);
 
         for (nstep = 0; nstep < mstep; nstep++) {	
-            /* loop mstep times in all  */
-            if (nstep % nout == 0) {
-                /* if time to output state  */
-                printstate(rx, ry, rz, 
-                           vx, vy, vz, n, tnow, outFile, filename);
+            /* Progress Bar Handling/Management */
+            int v = round((((double) nstep) / ((double) mstep)) * 100.0);
+            int barIndex = (int) round(((double) v / 100.0) * maxBar) + 1;
+            if (barIndex < maxBar - 1) {
+                outputBar[barIndex] = '#';
             }
+            printf("\r%s  %d%%", outputBar, v);
+            fflush(stdout);
+
             /* then call output routine */
-            leapstep<<<numBlocks, blockSize>>>(rx, ry, rz,
-                                          vx, vy, vz,
-                                          n, dt, GMCONST);
-            // leapstep(rx, ry, rz, vx, vy, vz, n, dt, accelFormula, GMCONST); 
+
+            leapstep <<<numBlocks, nThreads>>>(rx, ry, rz,
+                                               vx, vy, vz,
+                                               n, dt, gm, 0);
+            cudaDeviceSynchronize();
+
+            /* Copying memory from device to computer */
+            cudaMemcpy(massBuffer, mass, n*sizeof(float), cudaMemcpyDeviceToHost);
+            cudaMemcpy(rxBuffer, rx, n*sizeof(float), cudaMemcpyDeviceToHost);
+            cudaMemcpy(ryBuffer, ry, n*sizeof(float), cudaMemcpyDeviceToHost);
+            cudaMemcpy(rzBuffer, rz, n*sizeof(float), cudaMemcpyDeviceToHost);
+            cudaMemcpy(vxBuffer, vx, n*sizeof(float), cudaMemcpyDeviceToHost);
+            cudaMemcpy(vyBuffer, vy, n*sizeof(float), cudaMemcpyDeviceToHost);
+            cudaMemcpy(vzBuffer, vz, n*sizeof(float), cudaMemcpyDeviceToHost);
+
             /* take integration step    */
             tnow = tnow + dt;			
             /* and update value of time */
+
+            /* Printing out current positions and velocities */
+            if (nstep % nout == 0) {
+                printstate(rxBuffer, ryBuffer, rzBuffer, 
+                           vxBuffer, vyBuffer, vzBuffer, n, tnow, outFile, filename);
+            }
         }
-        if (mstep % nout == 0) {
-            /* if last output wanted    */
-            printstate(rx, ry, rz, 
-                       vx, vy, vz, n, tnow, outFile, filename);
-            /* then output last step    */
-        }
+        cudaDeviceSynchronize();
 
         /* Outputting to file */
-        printstate(rx, ry, rz, 
-                   vx, vy, vz, n, tnow, outFile, filename);
-
+        printstate(rxBuffer, ryBuffer, rzBuffer, 
+                   vxBuffer, vyBuffer, vzBuffer, n, tnow, outFile, filename);
+        /* Cleaning up progress bar */
+        printf("\r%s  %d%%\n", outputBar, 100);
+        fflush(stdout);
     }
+
+    /* Freeing memory */
+    cudaFree(mass);
+    cudaFree(rx);
+    cudaFree(ry);
+    cudaFree(rz);
+    cudaFree(vx);
+    cudaFree(vy);
+    cudaFree(vz);
+    cudaFree(gm);
+    cudaDeviceReset();
 }
 
 /*
@@ -151,121 +237,92 @@ int main(int argc, char **argv)
  * accurate unless the timestep dt is fixed from one call to another.
  */
 
-__global__
-void leapstep(double rx[], double ry[], double rz[], 
-              double vx[], double vy[], double vz[], 
-              int n, double dt, double gmConst[])
+__global__ void leapstep(float rx[], float ry[], float rz[], 
+                         float vx[], float vy[], float vz[], 
+                         int n, float dt, float gmConst[], int deviceOffset)
 {
-    int i;
-    double* ax;
-    double* ay;
-    double* az;
-    
-    ax = (double*) malloc(n*sizeof(double));
-    ay = (double*) malloc(n*sizeof(double));
-    az = (double*) malloc(n*sizeof(double));
+    int index = deviceOffset + blockIdx.x * blockDim.x + threadIdx.x;
+    float3 ac3;
 
-    /* Acting acceleration on position */
-    for (int i = 0; i < n; i++) {
-        ax[i] = ay[i] = az[i] = 0;
-        for (int j = 0; j < n; j++) {
-            if (j != i) {
-                double distVal = sqrt(((rx[i]-rx[j])*(rx[i]-rx[j]))
-                                +((ry[i]-ry[j])*(ry[i]-ry[j]))
-                                +((rz[i]-rz[j])*(rz[i]-rz[j])));
-                if (distVal > 0.0) {
-                    distVal = fabs(1/(distVal*distVal*distVal));
-                }
-                else {
-                    distVal = 0.0;
-                }
-                ax[i] += -rx[i]*gmConst[j]*distVal;
-                ay[i] += -ry[i]*gmConst[j]*distVal;
-                az[i] += -rz[i]*gmConst[j]*distVal;
-            }
-        }
-    }
-    for (i = 0; i < n; i++) {
-        /* loop over all points...  */
-        vx[i] = vx[i] + 0.5 * dt * ax[i];
-        vy[i] = vy[i] + 0.5 * dt * ay[i];
-        vz[i] = vz[i] + 0.5 * dt * az[i];
-        /* advance vel by half-step */
-    }
-    for (i = 0; i < n; i++) {
-        /* loop over points again...*/
-	    rx[i] = rx[i] + dt * vx[i];
-	    ry[i] = ry[i] + dt * vy[i];
-	    rz[i] = rz[i] + dt * vz[i];
-        /* advance pos by full-step */
-    }
-    /* Acting acceleration on position */
-    for (int i = 0; i < n; i++) {
-        ax[i] = ay[i] = az[i] = 0;
-        for (int j = 0; j < n; j++) {
-            if (j != i) {
-                double distVal = sqrt(((rx[i]-rx[j])*(rx[i]-rx[j]))
-                                +((ry[i]-ry[j])*(ry[i]-ry[j]))
-                                +((rz[i]-rz[j])*(rz[i]-rz[j])));
-                if (distVal > 0.0) {
-                    distVal = fabs(1/(distVal*distVal*distVal));
-                }
-                else {
-                    distVal = 0.0;
-                }
-                ax[i] += -rx[i]*gmConst[j]*distVal;
-                ay[i] += -ry[i]*gmConst[j]*distVal;
-                az[i] += -rz[i]*gmConst[j]*distVal;
-            }
-        }
-    }
-    for (i = 0; i < n; i++) { 
-        /* loop over all points...  */
-	    vx[i] = vx[i] + 0.5 * dt * ax[i];
-	    vy[i] = vy[i] + 0.5 * dt * ay[i];
-	    vz[i] = vz[i] + 0.5 * dt * az[i];
-        /* and complete vel. step   */
-    }
+    /* call acceleration code */
+    ac3 = accel(rx, ry, rz, n, gmConst, deviceOffset, index);
+    __syncthreads();
+
+    /* Applying acceleration to velocity */
+    vx[index] = vx[index] + 0.5 * dt * ac3.x;
+    vy[index] = vy[index] + 0.5 * dt * ac3.y;
+    vz[index] = vz[index] + 0.5 * dt * ac3.z;
+
+    /* Applying velocity to position */
+    rx[index] = rx[index] + dt * vx[index];
+    ry[index] = ry[index] + dt * vy[index];
+    rz[index] = rz[index] + dt * vz[index];
+
+    /* call acceleration code */
+    ac3 = accel(rx, ry, rz, n, gmConst, deviceOffset, index);
+    __syncthreads();
+
+    vx[index] = vx[index] + 0.5 * dt * ac3.x;
+    vy[index] = vy[index] + 0.5 * dt * ac3.y;
+    vz[index] = vz[index] + 0.5 * dt * ac3.z;
 }
 
 /*
  * ACCEL: compute accelerations for harmonic oscillator(s).
  */
 
-__global__
-void accel(double* ax, double* ay, double* az, 
-           double* rx, double* ry, double* rz, 
-           int n, double gmConst[])
+__device__
+float3 accel(float* rx, 
+             float* ry, 
+             float* rz, 
+             int n, float gmConst[], int deviceOffset, int index)
 {
-    /* Acting acceleration on position */
-    for (int i = 0; i < n; i++) {
-        ax[i] = ay[i] = az[i] = 0;
-        for (int j = 0; j < n; j++) {
-            if (j != i) {
-                double distVal = sqrt(((rx[i]-rx[j])*(rx[i]-rx[j]))
-                                +((ry[i]-ry[j])*(ry[i]-ry[j]))
-                                +((rz[i]-rz[j])*(rz[i]-rz[j])));
-                if (distVal > 0.0) {
-                    distVal = fabs(1/(distVal*distVal*distVal));
-                }
-                else {
-                    distVal = 0.0;
-                }
-                ax[i] += -rx[i]*gmConst[j]*distVal;
-                ay[i] += -ry[i]*gmConst[j]*distVal;
-                az[i] += -rz[i]*gmConst[j]*distVal;
-            }
+    /* Setting a base "distance" for acceleration due to rounding issues when
+       particles get too far */
+
+    float3 ac3 = {0.0f, 0.0f, 0.0f};
+    for (int j = 0; j < n; j++) {
+        if (j != index) {
+            float distVal = (rx[index]-rx[j])*(rx[index]-rx[j])
+                            +(ry[index]-ry[j])*(ry[index]-ry[j])
+                            +(rz[index]-rz[j])*(rz[index]-rz[j])+0.00001;
+            distVal = distVal * distVal * distVal;
+            distVal = 1.0f / sqrtf(distVal);
+    
+            /* Summing up acceleration */
+            ac3.x += -(rx[index]-rx[j])*gmConst[j]*distVal;
+            ac3.y += -(ry[index]-ry[j])*gmConst[j]*distVal;
+            ac3.z += -(rz[index]-rz[j])*gmConst[j]*distVal;
         }
+        __syncthreads();
+    }
+    return ac3;
+}
+
+/*
+ * SIGN: Returns the sign of a float
+ */
+__device__
+float sign(float x) {
+    if (x > 0.0) {
+        return 1.0;
+    }
+    else if (x < 0.0) {
+        return -1.0;
+    }
+    else {
+        return 0.0;
     }
 }
+
 
 /*
  * PRINTSTATE: output system state variables.
  */
 
-void printstate(double rx[], double ry[], double rz[],
-                double vx[], double vy[], double vz[], 
-                int n, double tnow, FILE* outFile, const char * filename)
+void printstate(float rx[], float ry[], float rz[],
+                float vx[], float vy[], float vz[], 
+                int n, float tnow, FILE* outFile, const char * filename)
 {
     int i;
     outFile = fopen(filename, "a+");

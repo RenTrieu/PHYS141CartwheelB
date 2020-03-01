@@ -3,25 +3,31 @@
 
 /* maximum number of points */
 #define MAXPNT 10000
+#define MAXBUFFER 4096
+
+const int nThreads = 256;
 
 /* Scaling units to 100*AU */
 #define scaleFactor 1.0
 
 /* routine to take one step */
 __global__
-void leapstep(double rx[], double ry[], double rz[], 
-              double vx[], double vy[], double vz[], 
-              int n, double dt, double gmConst[]);
+void leapstep(float rx[], float ry[], float rz[], 
+              float vx[], float vy[], float vz[], 
+              int n, float dt, float gmConst[], int deviceOffset);
 
 /* accel. for harmonic osc. */
-__global__
-void accel(double ax[], double ay[], double az[], 
-           double rx[], double ry[], double rz[], 
-           int n, double gmConst[]);
+__device__
+float3 accel(float rx[], float ry[], float rz[], 
+           int n, float gmConst[], int deviceOffset, int index);
+
+/* sign function */
+__device__
+float sign(float x);
 
 /* print out system state   */
-void printstate(double rx[], double ry[], double rz[],
-                double vx[], double vy[], double vz[], 
-                int n, double tnow, FILE* outFile, const char * filename);
+void printstate(float rx[], float ry[], float rz[],
+                float vx[], float vy[], float vz[], 
+                int n, float tnow, FILE* outFile, const char * filename);
 
 #endif
