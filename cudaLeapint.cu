@@ -109,7 +109,6 @@ int main(int argc, char **argv)
     cudaMalloc(&vz, n*sizeof(float));
     cudaMalloc(&gm, n*sizeof(float));
 
-
     /* Copying memory to the device */
     cudaMemcpy(mass, massBuffer, n*sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(rx, rxBuffer, n*sizeof(float), cudaMemcpyHostToDevice);
@@ -153,7 +152,7 @@ int main(int argc, char **argv)
 
     /* now, loop performing integration */
 
-    /* Harmonic Oscillator */
+    /* Gravity Acceleration */
     {
         FILE* outFile;
         const char * filename;
@@ -174,6 +173,7 @@ int main(int argc, char **argv)
                    vxBuffer, vyBuffer, vzBuffer, n, tnow, outFile, filename);
 
         for (nstep = 0; nstep < mstep; nstep++) {	
+
             /* Progress Bar Handling/Management */
             int v = round((((double) nstep) / ((double) mstep)) * 100.0);
             int barIndex = (int) round(((double) v / 100.0) * maxBar) + 1;
@@ -277,9 +277,6 @@ float3 accel(float* rx,
              float* rz, 
              int n, float gmConst[], int deviceOffset, int index)
 {
-    /* Setting a base "distance" for acceleration due to rounding issues when
-       particles get too far */
-
     float3 ac3 = {0.0f, 0.0f, 0.0f};
     for (int j = 0; j < n; j++) {
         if (j != index) {
@@ -300,23 +297,6 @@ float3 accel(float* rx,
 }
 
 /*
- * SIGN: Returns the sign of a float
- */
-__device__
-float sign(float x) {
-    if (x > 0.0) {
-        return 1.0;
-    }
-    else if (x < 0.0) {
-        return -1.0;
-    }
-    else {
-        return 0.0;
-    }
-}
-
-
-/*
  * PRINTSTATE: output system state variables.
  */
 
@@ -327,7 +307,7 @@ void printstate(float rx[], float ry[], float rz[],
     int i;
     outFile = fopen(filename, "a+");
     for (i = 0; i < n; i++)	{		
-        /* loop over all points...  */
+        /* Printing out time, particle, position, and velocity */
         fprintf(outFile, 
                 "%8.4f\t%4d\t%20.6f\t%20.6f\t%20.6f\t%20.6f\t%20.6f\t%20.6f\n", 
                 tnow, i, rx[i], ry[i], rz[i], vx[i], vy[i], vz[i]);

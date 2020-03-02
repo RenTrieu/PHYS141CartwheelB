@@ -5,7 +5,7 @@
 #define MAXPNT 10000
 #define MAXBUFFER 4096
 
-const int nThreads = 256;
+const int nThreads = 1024;
 
 /* Scaling units to 100*AU */
 #define scaleFactor 1.0
@@ -20,10 +20,6 @@ void leapstep(float rx[], float ry[], float rz[],
 __device__
 float3 accel(float rx[], float ry[], float rz[], 
            int n, float gmConst[], int deviceOffset, int index);
-
-/* sign function */
-__device__
-float sign(float x);
 
 /* print out system state   */
 void printstate(float rx[], float ry[], float rz[],
