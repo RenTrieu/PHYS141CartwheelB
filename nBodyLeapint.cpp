@@ -1,6 +1,7 @@
 /*
  * Program: nBodyLeapint.cpp
  * Author: Darren Trieu Nguyen
+ * Last Modified: 3-3-20
  * Function: N-Body Simulation
  */
 
@@ -12,11 +13,6 @@
 #include "nBodyLeapint.h"
 
 using namespace std;
-
-#define __STDC_WANT_LIB_EXT1__ 1
-#define MAXPNT 10000
-#define MAXBUFFER 4096
-
 
 int main(int argc, char** argv) {
     /* Variable declarations */
