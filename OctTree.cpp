@@ -146,12 +146,12 @@ int OctTreeNode::calculateAccel(Particle* p) {
         double avgSize = (this->xl-this->xs 
                           + this->yl-this->ys
                           + this->zl-this->zs) / 3.0;
-        double distVal = sqrtf((this->particle->x - p->x)
-                               *(this->particle->x - p->x)
-                               +(this->particle->y - p->y)
-                               *(this->particle->y - p->y)
-                               +(this->particle->z - p->z)
-                               *(this->particle->z - p->z));
+        double distVal = sqrtf((this->cmx - p->x)
+                               *(this->cmx - p->x)
+                               +(this->cmy - p->y)
+                               *(this->cmy - p->y)
+                               +(this->cmz - p->z)
+                               *(this->cmz - p->z));
         /* Recursive Case */
         if ((avgSize / distVal) >= heurThreshold) {
             this->nsss->calculateAccel(p);
@@ -166,7 +166,31 @@ int OctTreeNode::calculateAccel(Particle* p) {
         }
         /* Non-Recursive Center of Mass Case */
         else {
-            this->nsss->totalMass*(this->nss->cmx - this->p)
+            OctTreeNode** subList = new OctTreeNode*[8];
+            subList[0] = this->nsss;
+            subList[1] = this->nssl;
+            subList[2] = this->nsls;
+            subList[3] = this->nsll;
+            subList[4] = this->nlss;
+            subList[5] = this->nlsl; 
+            subList[6] = this->nlls;
+            subList[7] = this->nlll;
+
+            for (int i = 0; i < 8; i++) {
+                double distance = sqrtf((subList[i]->cmx - p->x)
+                                        *(subList[i]->cmx - p->x)
+                                        +(subList[i]->cmy - p->y)
+                                        *(subList[i]->cmy - p->y)
+                                        +(subList[i]->cmz - p->z)
+                                        *(subList[i]->cmz - p->z));
+                p->ax += (subList[i]->cmx - p->x)*GCONST
+                         * subList[i]->totalMass*distance;
+                p->ay += (subList[i]->cmy - p->y)*GCONST
+                         * subList[i]->totalMass*distance;
+                p->az += (subList[i]->cmz - p->z)*GCONST
+                         * subList[i]->totalMass*distance;
+            }
+
             return 0;
         }
     }
