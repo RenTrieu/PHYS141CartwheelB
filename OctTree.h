@@ -7,7 +7,7 @@
 #include "nBodyLeapint.h"
 
 /* Constants */
-#define heurThreshold 1
+#define heurThreshold 1.0
 
 /* Particle Declaration */
 class Particle {
