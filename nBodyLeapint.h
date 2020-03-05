@@ -1,11 +1,14 @@
 /*
  * Header File: nBodyLeapint.h
  */
+ 
+#include <cstdio>
 
 /* Constants */
 #define __STDC_WANT_LIB_EXT1__ 1
 #define MAXPNT 10000
 #define MAXBUFFER 4096
+#define GCONST 1
 
 /* Function Prototypes */
 void printstate(double rx[], double ry[], double rz[],

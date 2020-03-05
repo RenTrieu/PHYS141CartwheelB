@@ -1,7 +1,7 @@
 /*
  * Program: OctTree.cpp
  * Author: Darren Trieu Nguyen
- * Last Modified: 3-3-20
+ * Last Modified: 3-4-20
  */
 #include <algorithm>
 #include <cstring>
@@ -26,6 +26,11 @@ void OctTreeNode::addParticle(Particle* p) {
     if (this->nsss == nullptr) {
         if (this->particle == nullptr) {
             /* No particle or subnodes detected, adding particle to node */
+            cmx = p->x * p->mass;
+            cmy = p->y * p->mass;
+            cmz = p->z * p->mass;
+            totalMass = p->mass;
+
             this->particle = p;
         }
         else {
@@ -33,7 +38,7 @@ void OctTreeNode::addParticle(Particle* p) {
             Particle* tmp = this->particle;
 
             /* If the particles are in the same space, exclude new particle */
-            if (abs(tmp->x - p->x) < 0.001 && abs(tmp->y - p->y) < 0.001) {
+            if ((abs(tmp->x - p->x) < 0.001) && (abs(tmp->y - p->y) < 0.001)) {
                 return;
             }
 
@@ -48,6 +53,11 @@ void OctTreeNode::addParticle(Particle* p) {
             this->nlll = new OctTreeNode(cx, cy, cz, xl, yl, zl);
             this->particle = nullptr;
 
+            cmx = 0;
+            cmy = 0;
+            cmz = 0;
+            totalMass = 0;
+
             /* Recursively call addParticle to sort the particles 
                into the corresponding subnodes */
             this->addParticle(tmp);
@@ -61,6 +71,13 @@ void OctTreeNode::addParticle(Particle* p) {
         int b = (p->y >= cy) ? 1:0;
         int c = (p->z >= cz) ? 1:0;
         int d=a|(b<<1)|(c<<2);
+
+        /* Center of mass calculation */
+        cmx += p->x * p->mass;
+        cmy += p->y * p->mass;
+        cmz += p->z * p->mass;
+        totalMass = p->mass;
+
         if (c == 0) {
             this->nsss->addParticle(p);
         }
@@ -87,5 +104,72 @@ void OctTreeNode::addParticle(Particle* p) {
         }
         return;
     }
+}
+
+/* 
+ * OctTreeNode calculateAccel Function 
+ * Parameters: Particle * p - pointer to particle for which to calculate 
+ *                            acceleration
+ * Returns: 0 if acceleration is calculated, 
+ *          1 if acceleration is not calculated
+ */
+int OctTreeNode::calculateAccel(Particle* p) {
+    if (this->nsss == nullptr) {
+        /* Empty subnode and empty particle case */
+        if (this->particle == nullptr) {
+            return 1;
+        }
+        /* Empty subnode, but existing particle case */
+        else {
+            double distVal = (this->particle->x - p->x)
+                             *(this->particle->x - p->x)
+                             +(this->particle->y - p->y)
+                             *(this->particle->y - p->y)
+                             +(this->particle->z - p->z)
+                             *(this->particle->z - p->z) + 0.00001;
+            distVal = distVal * distVal * distVal;
+            distVal = 1.0f / sqrtf(distVal);
+
+            /* Summing up acceleration */
+            p->ax += (this->particle->x - p->x)*GCONST
+                     *this->particle->mass*distVal;
+            p->ay += (this->particle->y - p->y)*GCONST
+                     *this->particle->mass*distVal;
+            p->az += (this->particle->z - p->z)*GCONST
+                     *this->particle->mass*distVal;
+            return 0;
+        }
+    }
+    /* Subnodes exist case */
+    else {
+        /* Heuristic Analysis */
+        double avgSize = (this->xl-this->xs 
+                          + this->yl-this->ys
+                          + this->zl-this->zs) / 3.0;
+        double distVal = sqrtf((this->particle->x - p->x)
+                               *(this->particle->x - p->x)
+                               +(this->particle->y - p->y)
+                               *(this->particle->y - p->y)
+                               +(this->particle->z - p->z)
+                               *(this->particle->z - p->z));
+        /* Recursive Case */
+        if ((avgSize / distVal) >= heurThreshold) {
+            this->nsss->calculateAccel(p);
+            this->nssl->calculateAccel(p);
+            this->nsls->calculateAccel(p);
+            this->nsll->calculateAccel(p);
+            this->nlss->calculateAccel(p);
+            this->nlsl->calculateAccel(p);
+            this->nlls->calculateAccel(p);
+            this->nlll->calculateAccel(p);
+            return 0;
+        }
+        /* Non-Recursive Center of Mass Case */
+        else {
+            this->nsss->totalMass*(this->nss->cmx - this->p)
+            return 0;
+        }
+    }
+    return 1;
 }
 

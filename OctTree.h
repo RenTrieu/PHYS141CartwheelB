@@ -1,8 +1,13 @@
 /*
  * Header File: OctTree.h
  * Author: Darren Trieu Nguyen
- * Last Modified: 3-3-20
+ * Last Modified: 3-4-20
  */
+
+#include "nBodyLeapint.h"
+
+/* Constants */
+#define heurThreshold 1
 
 /* Particle Declaration */
 class Particle {
@@ -10,12 +15,18 @@ class Particle {
     double x;
     double y;
     double z;
+    double mass;
+    double ax = 0.0;
+    double ay = 0.0;
+    double az = 0.0;
 
-    Particle(double xi, double yi, double zi) : x(xi), y(yi), z(zi) { }
+    Particle(double xi, double yi, double zi, double m)
+    : x(xi), y(yi), z(zi), mass(m) { }
 };
 
 /* OctTreeNode Declaration */          
 // Based off of http://mathandcode.com/2016/02/16/quadtree.html
+// Just ported to C++ and extended to 3 dimensions 
 class OctTreeNode {
     public:
     /* Six bounds on the octtree node rectangular prism */
@@ -27,6 +38,12 @@ class OctTreeNode {
     double cx;
     double cy;
     double cz;
+
+    /* Center of Masses */
+    double cmx = 0;
+    double cmy = 0;
+    double cmz = 0;
+    double totalMass = 0;
 
     /* Pointers to 8 subnodes */
     OctTreeNode* nsss = nullptr;
@@ -47,4 +64,7 @@ class OctTreeNode {
 
     /* Add particle function */
     void addParticle(Particle* p);
+
+    /* Calculate acceleration function */
+    int calculateAccel(Particle* p);
 };
