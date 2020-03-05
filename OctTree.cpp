@@ -16,9 +16,25 @@ OctTreeNode::OctTreeNode(double smallx, double bigx,
             double smallz, double bigz) : xs(smallx), xl(bigx),
                                           ys(smally), yl(bigy),
                                           zs(smallz), zl(bigz) {
+    /* Calculating center of node space */
     this->cx = (xs+xl) / 2.0;
     this->cy = (ys+yl) / 2.0;
     this->cz = (zs+zl) / 2.0;
+
+    /* Creating an array of pointers to subnodes */
+    subNodeList = new OctTreeNode*[8];
+    subNodeList[0] = this->nsss;
+    subNodeList[1] = this->nssl;
+    subNodeList[2] = this->nsls;
+    subNodeList[3] = this->nsll;
+    subNodeList[4] = this->nlss;
+    subNodeList[5] = this->nlsl; 
+    subNodeList[6] = this->nlls;
+    subNodeList[7] = this->nlll;
+
+    /* Size of subNodeList */
+    subListSize = (sizeof(subNodeList) / sizeof(subNodeList[0]));
+
 }
 
 /* OctTreeNode addParticle Function */
@@ -78,29 +94,8 @@ void OctTreeNode::addParticle(Particle* p) {
         cmz += p->z * p->mass;
         totalMass = p->mass;
 
-        if (c == 0) {
-            this->nsss->addParticle(p);
-        }
-        else if (c == 1) {
-            this->nlss->addParticle(p);
-        }
-        else if (c == 2) {
-            this->nsls->addParticle(p);
-        }
-        else if (c == 3) {
-            this->nlls->addParticle(p);
-        }
-        else if (c == 4) {
-            this->nssl->addParticle(p);
-        }
-        else if (c == 5) {
-            this->nlsl->addParticle(p);
-        }
-        else if (c == 6) {
-            this->nsll->addParticle(p);
-        }
-        else if (c == 7) {
-            this->nlll->addParticle(p);
+        for (int i = 0; i < subListSize; i++) {
+            subNodeList[c]->addParticle(p);
         }
         return;
     }
@@ -154,43 +149,27 @@ int OctTreeNode::calculateAccel(Particle* p) {
                                *(this->cmz - p->z));
         /* Recursive Case */
         if ((avgSize / distVal) >= heurThreshold) {
-            this->nsss->calculateAccel(p);
-            this->nssl->calculateAccel(p);
-            this->nsls->calculateAccel(p);
-            this->nsll->calculateAccel(p);
-            this->nlss->calculateAccel(p);
-            this->nlsl->calculateAccel(p);
-            this->nlls->calculateAccel(p);
-            this->nlll->calculateAccel(p);
+            for (int i = 0; i < subListSize; i++) {
+                subNodeList[i]->calculateAccel(p);
+            }
             return 0;
         }
         /* Non-Recursive Center of Mass Case */
         else {
-            OctTreeNode** subList = new OctTreeNode*[8];
-            subList[0] = this->nsss;
-            subList[1] = this->nssl;
-            subList[2] = this->nsls;
-            subList[3] = this->nsll;
-            subList[4] = this->nlss;
-            subList[5] = this->nlsl; 
-            subList[6] = this->nlls;
-            subList[7] = this->nlll;
-
-            for (int i = 0; i < 8; i++) {
-                double distance = sqrtf((subList[i]->cmx - p->x)
-                                        *(subList[i]->cmx - p->x)
-                                        +(subList[i]->cmy - p->y)
-                                        *(subList[i]->cmy - p->y)
-                                        +(subList[i]->cmz - p->z)
-                                        *(subList[i]->cmz - p->z));
-                p->ax += (subList[i]->cmx - p->x)*GCONST
-                         * subList[i]->totalMass*distance;
-                p->ay += (subList[i]->cmy - p->y)*GCONST
-                         * subList[i]->totalMass*distance;
-                p->az += (subList[i]->cmz - p->z)*GCONST
-                         * subList[i]->totalMass*distance;
+            for (int i = 0; i < this->subListSize; i++) {
+                double distance = sqrtf((subNodeList[i]->cmx - p->x)
+                                        *(subNodeList[i]->cmx - p->x)
+                                        +(subNodeList[i]->cmy - p->y)
+                                        *(subNodeList[i]->cmy - p->y)
+                                        +(subNodeList[i]->cmz - p->z)
+                                        *(subNodeList[i]->cmz - p->z));
+                p->ax += (subNodeList[i]->cmx - p->x)*GCONST
+                         * subNodeList[i]->totalMass*distance;
+                p->ay += (subNodeList[i]->cmy - p->y)*GCONST
+                         * subNodeList[i]->totalMass*distance;
+                p->az += (subNodeList[i]->cmz - p->z)*GCONST
+                         * subNodeList[i]->totalMass*distance;
             }
-
             return 0;
         }
     }

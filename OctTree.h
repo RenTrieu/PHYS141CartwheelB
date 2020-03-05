@@ -55,6 +55,10 @@ class OctTreeNode {
     OctTreeNode* nlls = nullptr;
     OctTreeNode* nlll = nullptr;
 
+    /* Array of pointers of the 8 subnodes */
+    OctTreeNode** subNodeList;
+    int subListSize;
+
     /* Pointer to a particle */
     Particle* particle = nullptr;
 
