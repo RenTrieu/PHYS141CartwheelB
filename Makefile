@@ -5,4 +5,6 @@ run: compile
 	./cudaLeapint 
 clean: 
 	rm cudaLeapint
-
+	rm *.txt
+	rm *.csv
+	rm -rf SinglePoints/

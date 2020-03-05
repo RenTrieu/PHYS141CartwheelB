@@ -272,9 +272,7 @@ __global__ void leapstep(float rx[], float ry[], float rz[],
  */
 
 __device__
-float3 accel(float* rx, 
-             float* ry, 
-             float* rz, 
+float3 accel(float* rx, float* ry, float* rz, 
              int n, float gmConst[], int deviceOffset, int index)
 {
     float3 ac3 = {0.0f, 0.0f, 0.0f};
@@ -315,3 +313,4 @@ void printstate(float rx[], float ry[], float rz[],
     fclose(outFile);
 }
 
+    else if (strcmp(mode, "backward")
