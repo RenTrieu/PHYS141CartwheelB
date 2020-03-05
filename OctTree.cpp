@@ -24,12 +24,12 @@ OctTreeNode::OctTreeNode(double smallx, double bigx,
     /* Creating an array of pointers to subnodes */
     subNodeList = new OctTreeNode*[8];
     subNodeList[0] = this->nsss;
-    subNodeList[1] = this->nssl;
+    subNodeList[1] = this->nlss;
     subNodeList[2] = this->nsls;
-    subNodeList[3] = this->nsll;
-    subNodeList[4] = this->nlss;
+    subNodeList[3] = this->nlls;
+    subNodeList[4] = this->nssl;
     subNodeList[5] = this->nlsl; 
-    subNodeList[6] = this->nlls;
+    subNodeList[6] = this->nsll;
     subNodeList[7] = this->nlll;
 
     /* Size of subNodeList */
