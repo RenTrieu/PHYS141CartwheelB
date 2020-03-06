@@ -6,6 +6,7 @@
 //#of points generated
 #define SOFTEPI 0.00001
 //epsilon for softening gravuty
+#define NUC_DISK_RATIO 999.0
 
 double m2r(double); 
 double r2v(double, double); 
@@ -25,9 +26,15 @@ int main()
 	outCuda = fopen("initDiskGalaxy_forDarrensCudaNBody.csv","w");
 	//both of the above files will contain the same stuff
 	
-	for(int n=0; n<POINTS; n++)
+	pointSys[0].pos = zeroVector();
+	pointSys[0].vel = zeroVector();
+	pointSys[0].mass = NUC_DISK_RATIO/(NUC_DISK_RATIO+1);
+	
+	for(int n=1; n<POINTS; n++)
 	{
 		printf("particle %d\n", n);
+		
+		pointSys[n].mass = 1.0/((POINTS-1)*(NUC_DISK_RATIO+1));
 		double x1 = normRand(DIVPOW); //generates rand between 0 and 1 in steos of 10^-4, realted to fraction of the total mass contained in a disk of radius r
 		
 		double rVal = m2r(x1);
@@ -37,7 +44,7 @@ int main()
 				rVal=10e10;
 		//abolish inf
 		
-		double vVal = r2v(rVal,x1);
+		double vVal = r2v(rVal,pointSys[0].mass);
 		//generate v value
 		
 		if(isnan(rVal)||isnan(vVal))
@@ -53,11 +60,15 @@ int main()
 		pointSys[n].pos = scaleVector(rVal, pointSys[n].pos); 
 		pointSys[n].vel = scaleVector(vVal, pointSys[n].vel);
 		//above 2 lines scale the position and velocity vectors by the previously determined radius and velocity magnitudes.
-		
-		fprintf(outParticleSheet,"%d\t%d\t", n, 0); print2FileSpreadsheet(pointSys[n], outParticleSheet);
+	}
+	
+	for(int n=0; n<POINTS; n++)
+	{
+		fprintf(outParticleSheet,"%d\t%d\t%lf\t", n, 0, pointSys[n].mass);
+print2FileSpreadsheet(pointSys[n], outParticleSheet);
 		fprintf(outTimeSheet,"%d\t%d\t", n, 0); print2FileSpreadsheet(pointSys[n], outTimeSheet);
 		
-		fprintf(outCuda,"%lf\t", 1.0/POINTS); 
+		fprintf(outCuda,"%lf\t", pointSys[n].mass); 
 		for(int j=1; j<4; j++)
 			fprintf(outCuda,"%lf\t", pointSys[n].pos.coord[j]);
 		for(int j=1; j<4; j++)
@@ -70,6 +81,8 @@ int main()
 	fclose(outParticleSheet);
 	fflush(outTimeSheet);
 	fclose(outTimeSheet);
+	fflush(outTimeSheet);
+	fclose(outCuda);
 }
 
 //turns mass fraction x to radius value 
