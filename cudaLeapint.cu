@@ -313,4 +313,3 @@ void printstate(float rx[], float ry[], float rz[],
     fclose(outFile);
 }
 
-    else if (strcmp(mode, "backward")
