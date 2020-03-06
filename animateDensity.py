@@ -64,7 +64,7 @@ pstep = int(len(set(timeList)) / progressLength)
 # Plotting 
 i = 0
 
-dimLim = 8
+dimLim = 4
 
 for t in sorted(set(timeList)):
     current = timeFrame.loc[timeFrame['times'] == t]
