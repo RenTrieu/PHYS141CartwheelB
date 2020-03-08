@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Program: plotDensity.py
+# Program: animateDensity.py
 # Author: Darren Trieu Nguyen
 # Last Modified: 2-25-2020
 # Function: To animate a given density distribution
@@ -66,6 +66,21 @@ i = 0
 
 dimLim = 4
 
+# Plot initialization - Plot redraw code written by Dustin Wheeler
+fig=plt.figure()
+ax=fig.gca(projection='3d')
+particleLine, = ax.plot([0], [0], [0], '.', markersize=1)
+
+# Plot configurations 
+ax.set_xlim(-dimLim, dimLim)
+ax.set_ylim(-dimLim, dimLim)
+ax.set_zlim(-dimLim, dimLim)
+ax.set(xlabel='X Pos (1.0 kParsecs)',
+       ylabel='Y Pos (1.0 kParsecs)',
+       zlabel='Z Pos (1.0 kParsecs)')
+ax.grid()
+ax.legend()
+
 for t in sorted(set(timeList)):
     current = timeFrame.loc[timeFrame['times'] == t]
     curPosX = list(current['xpos'])
@@ -75,20 +90,10 @@ for t in sorted(set(timeList)):
     curVelY = list(current['yvel'])
     curVelZ = list(current['zvel'])
 
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
+    particleLine.set_data(curPosX, curPosY)
+    particleLine.set_3d_properties(curPosZ)
 
-    ax.set_xlim(-dimLim, dimLim)
-    ax.set_ylim(-dimLim, dimLim)
-    ax.set_zlim(-dimLim, dimLim)
-    ax.set(xlabel='X Pos (1.0 kParsecs)',
-           ylabel='Y Pos (1.0 kParsecs)',
-           zlabel='Z Pos (1.0 kParsecs)')
-
-    ax.scatter(curPosX, curPosY, curPosZ,
-               label='Monte Carlo Distribution: ' + str(outputFile))
-    ax.grid()
-    ax.legend()
+    fig.canvas.flush_events()
     fig.savefig(outDirectory + outputFile + 'Phase' + str(i) + '.png')
     plt.close()
     i += 1

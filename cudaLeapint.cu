@@ -131,9 +131,9 @@ int main(int argc, char **argv)
 
     /* next, set integration parameters */
 
-    mstep = 800;                     /* number of steps to take  */
-    nout = 4;                        /* steps between outputs    */
-    dt = 1.0;                        /* timestep for integration */
+    mstep = 500;                      /* number of steps to take  */
+    nout = 1;                         /* steps between outputs    */
+    dt = 0.02;                        /* timestep for integration */
 
     /* Checking to see if n is a multiple of nThreads*deviceCount 
        If not, then round down
