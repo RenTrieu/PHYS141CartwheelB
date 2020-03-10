@@ -1,9 +1,10 @@
-all: compile run plot
+all: compile distribution run plot
 compile: cudaLeapint.cu cudaLeapint.cuh
 	nvcc -o cudaLeapint cudaLeapint.cu -lm -arch=sm_35 -rdc=true
 	gcc -o diskDist_diskInvader diskDist_diskInvader.c -lm -std=gnu99
-run: compile
-	cp DiskDistribution/initDiskGalaxy_forDarrensCudaNBody.csv .
+distribution: diskDist_diskInvader
+	./diskDist_diskInvader
+run: compile initDiskGalaxy_forDarrensCudaNBody.csv
 	./cudaLeapint initDiskGalaxy_forDarrensCudaNBody.csv 
 clean: 
 	rm cudaLeapint
