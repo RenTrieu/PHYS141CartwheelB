@@ -89,7 +89,7 @@ nucleusIndex = 0
 invaderIndex = 10000
 
 if (timeFrame.shape[0] == 9216):
-    invaderIndex = 9215
+    invaderIndex = 9216
 
 for t in sorted(set(timeList)):
     # Current is all stars without nucleus or invader 
