@@ -14,6 +14,7 @@ import subprocess
 import pandas as pd
 import numpy as np
 import imageio
+import ffmpy
 
 # Minor CLI argument handling 
 if len(sys.argv) > 1:
@@ -87,6 +88,9 @@ ax.legend()
 nucleusIndex = 0
 invaderIndex = 10000
 
+if (timeFrame.shape[0] == 9216):
+    invaderIndex = 9215
+
 for t in sorted(set(timeList)):
     # Current is all stars without nucleus or invader 
     current = timeFrame.loc[timeFrame['times'] == t]
@@ -141,4 +145,10 @@ for fi in range(0, i-1):
     imageList.append(imageio.imread(outDirectory + outputFile \
                      + 'Phase' + str(fi) + '.png'))
 imageio.mimsave(outDirectory + outputFile + '.gif', imageList)
-    
+
+# https://stackoverflow.com/questions/40726502/python-convert-gif-to-videomp4     
+ff = ffmpy.FFmpeg(
+        inputs = {outDirectory + outputFile + '.gif': None},
+        outputs = {outDirectory + outputFile + '.mp4': None}
+     )
+ff.run()
