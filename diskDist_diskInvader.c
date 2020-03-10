@@ -10,14 +10,15 @@
 //#of points generated
 #define OG_INTR_MASS_RATIO OG_P/INTRUDER_P
 //ratio of original disk mass to intruder disk mass 
+#define MASSMULTIPLIER 1E3
 #define SOFTEPI 0.00001
 //epsilon for softening gravuty
 #define NUC_DISK_RATIO 999.0
 //nucleus to rest of disk ratio
 
-#define INTR_POS_OFFSET {0,0,0,-50}
+#define INTR_POS_OFFSET {0,0,0.15,-20}
 //intruder position displacement 
-#define INTR_VEL_OFFSET {0,0,0,20}
+#define INTR_VEL_OFFSET {0,0,0,6}
 //intruder velocity displacement 
 
 double m2r(double); 
@@ -37,7 +38,7 @@ int main()
 	outTimeSheet = fopen("outTimeSpreadsheet.csv","w");
 	outCuda = fopen("initDiskGalaxy_forDarrensCudaNBody.csv","w");
 	//both of the above files will contain the same stuff
-	const double starMass = 1.0/((POINTS-2)*(NUC_DISK_RATIO+1));
+	const double starMass = MASSMULTIPLIER/((POINTS-2)*(NUC_DISK_RATIO+1));
 	//below, sets disk distribution
 	for(int n=0; n<POINTS; n++)
 	{
