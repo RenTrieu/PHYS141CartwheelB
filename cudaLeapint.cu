@@ -36,8 +36,7 @@ int main(int argc, char **argv)
 
     /* GM Constants in AU^3/Day^2 */
     float GMCONST[MAXPNT];
-    GMCONST[0] = 2.959E-4;
-    for (int i = 1; i < MAXPNT; i++) {
+    for (int i = 0; i < MAXPNT; i++) {
         GMCONST[i] = 0.0;
     }
 

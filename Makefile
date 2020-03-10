@@ -6,6 +6,7 @@ run: compile
 	./cudaLeapint initDiskGalaxy_forDarrensCudaNBody.csv 
 clean: 
 	rm cudaLeapint
+	rm diskDist_diskInvader
 	rm *.txt
 	rm *.csv
 	rm -rf SinglePoints/
