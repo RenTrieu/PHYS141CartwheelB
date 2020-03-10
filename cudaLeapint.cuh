@@ -2,7 +2,7 @@
 #define LEAP_H
 
 /* maximum number of points */
-#define MAXPNT 10000
+#define MAXPNT 12500
 #define MAXBUFFER 4096
 
 const int nThreads = 1024;

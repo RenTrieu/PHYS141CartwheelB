@@ -275,20 +275,22 @@ float3 accel(float* rx, float* ry, float* rz,
              int n, float gmConst[], int deviceOffset, int index)
 {
     float3 ac3 = {0.0f, 0.0f, 0.0f};
-    for (int j = 0; j < n; j++) {
-        if (j != index) {
-            float distVal = (rx[index]-rx[j])*(rx[index]-rx[j])
-                            +(ry[index]-ry[j])*(ry[index]-ry[j])
-                            +(rz[index]-rz[j])*(rz[index]-rz[j])+0.00001;
-            distVal = distVal * distVal * distVal;
-            distVal = 1.0f / sqrtf(distVal);
-    
-            /* Summing up acceleration */
-            ac3.x += -(rx[index]-rx[j])*gmConst[j]*distVal;
-            ac3.y += -(ry[index]-ry[j])*gmConst[j]*distVal;
-            ac3.z += -(rz[index]-rz[j])*gmConst[j]*distVal;
+    if (index != 0) {
+        for (int j = 0; j < n; j++) {
+            if (j != index) {
+                float distVal = (rx[index]-rx[j])*(rx[index]-rx[j])
+                                +(ry[index]-ry[j])*(ry[index]-ry[j])
+                                +(rz[index]-rz[j])*(rz[index]-rz[j])+0.00001;
+                distVal = distVal * distVal * distVal;
+                distVal = 1.0f / sqrtf(distVal);
+        
+                /* Summing up acceleration */
+                ac3.x += -(rx[index]-rx[j])*gmConst[j]*distVal;
+                ac3.y += -(ry[index]-ry[j])*gmConst[j]*distVal;
+                ac3.z += -(rz[index]-rz[j])*gmConst[j]*distVal;
+            }
+            __syncthreads();
         }
-        __syncthreads();
     }
     return ac3;
 }
