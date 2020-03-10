@@ -1,6 +1,8 @@
 /*
  * CUDALEAPINT.CU: program to integrate hamiltonian system using leapfrog 
  *                 and CUDA
+ * Based off of: 
+ * https://courses.physics.ucsd.edu/2020/Winter/physics141/Assignments/leapint.c
  */
 
 #include "cuda_runtime.h"

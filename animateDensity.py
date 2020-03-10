@@ -64,12 +64,15 @@ pstep = int(len(set(timeList)) / progressLength)
 # Plotting 
 i = 0
 
-dimLim = 4
+dimLim = 3
 
 # Plot initialization - Plot redraw code written by Dustin Wheeler
 fig=plt.figure()
 ax=fig.gca(projection='3d')
 particleLine, = ax.plot([0], [0], [0], '.', markersize=1)
+nucleusLine, = ax.plot([0],[0],[0],'o', markersize=5)
+invaderLine, = ax.plot([0],[0],[0],'o', markersize=5)
+
 
 # Plot configurations 
 ax.set_xlim(-dimLim, dimLim)
@@ -81,8 +84,17 @@ ax.set(xlabel='X Pos (1.0 kParsecs)',
 ax.grid()
 ax.legend()
 
+nucleusIndex = 0
+invaderIndex = 10000
+
 for t in sorted(set(timeList)):
+    # Current is all stars without nucleus or invader 
     current = timeFrame.loc[timeFrame['times'] == t]
+    nucleus = timeFrame.loc[timeFrame['times'] == t]\
+              .loc[timeFrame['particle'] == nucleusIndex]
+    invader = timeFrame.loc[timeFrame['times'] == t]\
+              .loc[timeFrame['particle'] == invaderIndex]
+
     curPosX = list(current['xpos'])
     curPosY = list(current['ypos'])
     curPosZ = list(current['zpos'])
@@ -92,6 +104,12 @@ for t in sorted(set(timeList)):
 
     particleLine.set_data(curPosX, curPosY)
     particleLine.set_3d_properties(curPosZ)
+
+    nucleusLine.set_data(list(nucleus['xpos']), list(nucleus['ypos']))
+    nucleusLine.set_3d_properties(list(nucleus['zpos']))
+    invaderLine.set_data(list(invader['xpos']), list(invader['ypos']))
+    invaderLine.set_3d_properties(list(invader['zpos']))
+
 
     fig.canvas.flush_events()
     fig.savefig(outDirectory + outputFile + 'Phase' + str(i) + '.png')
