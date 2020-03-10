@@ -2,9 +2,9 @@
 #define DIVPOW 4
 #define DIVISOR 1.0e4
 //above is level of granularity for random numbers
-#define OG_P 1000
+#define OG_P 10000
 //points in original disk
-#define INTRUDER_P 400
+#define INTRUDER_P 2500
 //points in intruder
 #define POINTS OG_P+INTRUDER_P
 //#of points generated
@@ -15,9 +15,9 @@
 #define NUC_DISK_RATIO 999.0
 //nucleus to rest of disk ratio
 
-#define INTR_POS_OFFSET {0,0,0,-13}
+#define INTR_POS_OFFSET {0,0,0,-50}
 //intruder position displacement 
-#define INTR_VEL_OFFSET {0,0,0,5}
+#define INTR_VEL_OFFSET {0,0,0,20}
 //intruder velocity displacement 
 
 double m2r(double); 
@@ -54,10 +54,10 @@ int main()
 		//abolish inf
 		
 		double vVal = 0;
-		if(n<INTRUDER_P)
-			vVal = r2v(rVal,starMass*NUC_DISK_RATIO*(OG_P-1));
-		else if(n>=INTRUDER_P)
-			vVal = r2v(rVal,starMass*NUC_DISK_RATIO*(INTRUDER_P-1));
+		if(n<OG_P)
+			vVal = r2v(rVal,starMass*(NUC_DISK_RATIO*(OG_P-1)+x1));
+		else if(n>=OG_P)
+			vVal = r2v(rVal,starMass*(NUC_DISK_RATIO*(INTRUDER_P-1)+x1));
 		//generate v value
 		
 		if(isnan(rVal)||isnan(vVal))
