@@ -4,21 +4,21 @@
 //above is level of granularity for random numbers
 #define OG_P 10000
 //points in original disk
-#define INTRUDER_P 2500
+#define INTRUDER_P 3312
 //points in intruder
 #define POINTS OG_P+INTRUDER_P
 //#of points generated
 #define OG_INTR_MASS_RATIO OG_P/INTRUDER_P
 //ratio of original disk mass to intruder disk mass 
 #define MASSMULTIPLIER 1E3
-#define SOFTEPI 0.00001
+#define SOFTEPI 0.3333
 //epsilon for softening gravuty
 #define NUC_DISK_RATIO 999.0
 //nucleus to rest of disk ratio
 
-#define INTR_POS_OFFSET {0,0,0.15,-20}
+#define INTR_POS_OFFSET {0,0,0.3,-20}
 //intruder position displacement 
-#define INTR_VEL_OFFSET {0,0,0,6}
+#define INTR_VEL_OFFSET {0,0,0,7}
 //intruder velocity displacement 
 
 double m2r(double); 

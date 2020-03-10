@@ -282,7 +282,8 @@ float3 accel(float* rx, float* ry, float* rz,
             if (j != index) {
                 float distVal = (rx[index]-rx[j])*(rx[index]-rx[j])
                                 +(ry[index]-ry[j])*(ry[index]-ry[j])
-                                +(rz[index]-rz[j])*(rz[index]-rz[j])+0.00001;
+                                +(rz[index]-rz[j])*(rz[index]-rz[j])
+                                + SOFT_FACTOR;
                 distVal = distVal * distVal * distVal;
                 distVal = 1.0f / sqrtf(distVal);
         

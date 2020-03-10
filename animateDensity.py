@@ -113,7 +113,6 @@ for t in sorted(set(timeList)):
 
     fig.canvas.flush_events()
     fig.savefig(outDirectory + outputFile + 'Phase' + str(i) + '.png')
-    plt.close()
     i += 1
 
     # Progress Bar Increment
@@ -129,6 +128,7 @@ for t in sorted(set(timeList)):
     sys.stdout.flush()
 
 # Finishing Statement 
+plt.close()
 sys.stdout.flush()
 sys.stdout.write('\r' + str(plotFile) + ' Plot Progress: ['\
                  + str(''.join(progressString)) + ' ] '\

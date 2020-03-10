@@ -2,8 +2,9 @@
 #define LEAP_H
 
 /* maximum number of points */
-#define MAXPNT 12500
+#define MAXPNT 15000
 #define MAXBUFFER 4096
+#define SOFT_FACTOR 0.3333
 
 const int nThreads = 1024;
 
