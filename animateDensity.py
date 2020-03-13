@@ -15,6 +15,8 @@ import pandas as pd
 import numpy as np
 import imageio
 import ffmpy
+from multiprocessing import Pool, TimeoutError
+from functools import partial
 
 # Minor CLI argument handling 
 if len(sys.argv) > 1:
