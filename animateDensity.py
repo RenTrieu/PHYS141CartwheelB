@@ -96,8 +96,9 @@ invaderIndex = 10000
 if (timeFrame.shape[0] == 9216):
     invaderIndex = 9216
 
-for t in sorted(set(timeList)):
-    # Current is all stars without nucleus or invader 
+# Defining plot code for one frame
+def plotFrame(timeFrame, timeInterval, i):
+    t = float(i)*timeInterval
     current = timeFrame.loc[timeFrame['times'] == t]
     nucleus = timeFrame.loc[timeFrame['times'] == t]\
               .loc[timeFrame['particle'] == nucleusIndex]
@@ -128,7 +129,6 @@ for t in sorted(set(timeList)):
 
     fig.canvas.flush_events()
     fig.savefig(outDirectory + outputFile + 'Phase' + str(i) + '.png')
-    i += 1
 
     # Progress Bar Increment
     if (pstep is not 0):
@@ -141,6 +141,18 @@ for t in sorted(set(timeList)):
                      + str(''.join(progressString)) + ' ] '\
                      + '{:.0f}'.format((float(i / len(set(timeList))))*100) + '%')
     sys.stdout.flush()
+
+# Parallelizing the plotting of each frame
+timeInterval = float(sorted(set(timeFrame['times']))[1]) \
+               - float(sorted(set(timeFrame['times']))[0])
+
+finalTime = max(list(timeFrame['times']))
+maxIndex = int(float(finalTime) / timeInterval)
+processQuantity = 8
+with Pool(processes=processQuantity) as pool:
+    plotFramePartial = partial(plotFrame, timeFrame, timeInterval)
+    pool.map(plotFramePartial, range(maxIndex))
+
 
 # Finishing Statement 
 plt.close()
