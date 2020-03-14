@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Program: makeInvader.py
+# Program: addInvader.py
 # Author: Darren Trieu Nguyen
 # Last Modified 3-14-20
 # Function: Takes a distribution and appends an invader copy with a given 
