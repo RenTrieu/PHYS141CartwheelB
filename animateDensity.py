@@ -73,9 +73,7 @@ ax=fig.gca(projection='3d')
 particleLine, = ax.plot([0], [0], [0], '.', markersize=1)
 nucleusLine, = ax.plot([0],[0],[0],'o', markersize=5)
 
-"""
 invaderLine, = ax.plot([0],[0],[0],'o', markersize=5)
-"""
 
 
 # Plot configurations 
@@ -91,8 +89,8 @@ ax.legend()
 nucleusIndex = 0
 invaderIndex = 10000
 
-if (timeFrame.shape[0] == 9216):
-    invaderIndex = 9216
+if (timeFrame.shape[0] >= 3072):
+    invaderIndex = 3071
 
 for t in sorted(set(timeList)):
     # Current is all stars without nucleus or invader 
@@ -100,10 +98,8 @@ for t in sorted(set(timeList)):
     nucleus = timeFrame.loc[timeFrame['times'] == t]\
               .loc[timeFrame['particle'] == nucleusIndex]
 
-    """
     invader = timeFrame.loc[timeFrame['times'] == t]\
               .loc[timeFrame['particle'] == invaderIndex]
-    """
 
     curPosX = list(current['xpos'])
     curPosY = list(current['ypos'])
@@ -118,10 +114,8 @@ for t in sorted(set(timeList)):
     nucleusLine.set_data(list(nucleus['xpos']), list(nucleus['ypos']))
     nucleusLine.set_3d_properties(list(nucleus['zpos']))
 
-    """
     invaderLine.set_data(list(invader['xpos']), list(invader['ypos']))
     invaderLine.set_3d_properties(list(invader['zpos']))
-    """
 
 
     fig.canvas.flush_events()

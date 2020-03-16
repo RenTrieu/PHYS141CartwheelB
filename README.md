@@ -61,8 +61,10 @@ Files:
 
 runDistribution.sh:
 
-- Usage: ./runDistribution.sh [Distribution File]
+- Usage: ./runDistribution.sh [Distribution File] [Galaxy/Point]
 - Takes in a distribution file (formatted for cudaLeapint)
+- Takes in the style of invader to be appended: Galaxy creates a full
+  galaxy distribution while Point creates a single point mass invader
 - Handles the overhead for moving files, running the n-body simulation on the
   distribution, and plotting the simulation file
 
