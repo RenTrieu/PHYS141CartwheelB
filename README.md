@@ -68,9 +68,11 @@ runDistribution.sh:
 
 addInvader.py
 
-- Usage: ./addInvader.py [Distribution File] [Galaxy/Point]
-- Takes in a distribution file (formatted for cudaLeapint)
-- Takes in the style of invader to be appended: Galaxy creates a full
-  galaxy distribution while Point creates a single point mass invader
+- Usage: ./addInvader.py [Distribution File] [Galaxy/Point] [Mass Multiplier]
+- Distribution File: Takes in a distribution file (formatted for cudaLeapint)
+- Galaxy/Point: Takes in the style of invader to be appended: Galaxy creates a 
+  full galaxy distribution while Point creates a single point mass invader
+- Mass Multiplier: Multiplies all appended invader masses by the specified
+  mass multiplier
 - Intended for taking in a distribution for a single galaxy and 
   appending an invader within the same distribution file
