@@ -69,15 +69,15 @@ elif ((invaderStyle == "Point") or (invaderStyle == "point")):
     # For CUDA interpretation, cutting out particles to make the distribution
     # a multiple of nThreads (ensuring that the invader stays in the 
     # distribution)
-    if ((len(massList) % nThreads) != 0):
-        endIndex = (int(len(massList) / nThreads) * nThreads) - 1
-        massList = massList[0:endIndex]
-        xPosList = xPosList[0:endIndex]
-        yPosList = yPosList[0:endIndex]
-        zPosList = zPosList[0:endIndex]
-        xVelList = xVelList[0:endIndex]
-        yVelList = yVelList[0:endIndex]
-        zVelList = zVelList[0:endIndex]
+    endIndex = (int((len(massList)+1) / nThreads) * nThreads) - 1
+    print("End Index: " + str(endIndex))
+    massList = massList[0:endIndex]
+    xPosList = xPosList[0:endIndex]
+    yPosList = yPosList[0:endIndex]
+    zPosList = zPosList[0:endIndex]
+    xVelList = xVelList[0:endIndex]
+    yVelList = yVelList[0:endIndex]
+    zVelList = zVelList[0:endIndex]
 
     # Appending the invader into the distribution
     massList = np.append(massList, [massMultiplier*sum(massList)])
