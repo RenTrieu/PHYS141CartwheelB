@@ -78,7 +78,7 @@ elif ((invaderStyle == "Point") or (invaderStyle == "point")):
         zVelList = zVelList[0:endIndex]
 
     # Appending the invader into the distribution
-    massList = np.append(massList, [sum(massList)])
+    massList = np.append(massList, [0.1*sum(massList)])
     xPosList = np.append(xPosList, [xPosList[0]])
     yPosList = np.append(yPosList, [yPosList[0]])
     zPosList = np.append(zPosList, [float(zPosList[0]) + zPosOffset])
