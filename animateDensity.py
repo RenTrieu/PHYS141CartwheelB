@@ -89,7 +89,7 @@ ax.legend()
 nucleusIndex = 0
 invaderIndex = 10000
 
-if (timeFrame.shape[0] >= 3072):
+if (timeFrame.shape[0] == 3072):
     invaderIndex = 3071
 
 for t in sorted(set(timeList)):
