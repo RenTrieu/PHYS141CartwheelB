@@ -14,11 +14,13 @@ import numpy as np
 import copy
 
 # Minor CLI argument handling 
-if len(sys.argv) > 2:
+if len(sys.argv) > 3:
     distFile = sys.argv[1]
     invaderStyle = sys.argv[2]
+    massMultiplier = float(sys.argv[3])
 else:
-    print('Usage: ' + sys.argv[0] + ' [Distribution File] [Galaxy/Point]')
+    print('Usage: ' + sys.argv[0] + \
+    ' [Distribution File] [Galaxy/Point] [Mass Multiplier]')
     sys.exit()
 
 # Invader offset constants
@@ -52,7 +54,7 @@ if ((invaderStyle == "Galaxy") or (invaderStyle == "galaxy")):
         zVelInvaderList[i] = zVelList[i] + zVelOffset
 
     # Appending invader to the original arrays
-    massList = np.append(massList, massList)
+    massList = np.append(massList, [i*massMultiplier for i in massList])
     xPosList = np.append(xPosList, xPosList)
     yPosList = np.append(yPosList, yPosList)
     zPosList = np.append(zPosList, zPosInvaderList)
@@ -78,7 +80,7 @@ elif ((invaderStyle == "Point") or (invaderStyle == "point")):
         zVelList = zVelList[0:endIndex]
 
     # Appending the invader into the distribution
-    massList = np.append(massList, [0.1*sum(massList)])
+    massList = np.append(massList, [massMultiplier*sum(massList)])
     xPosList = np.append(xPosList, [xPosList[0]])
     yPosList = np.append(yPosList, [yPosList[0]])
     zPosList = np.append(zPosList, [float(zPosList[0]) + zPosOffset])
