@@ -127,7 +127,7 @@ elif ((invaderStyle == "Bulge") or (invaderStyle == "bulge")):
     # For CUDA interpretation, cutting out particles to make the distribution
     # a multiple of nThreads (ensuring that the invader stays in the 
     # distribution)
-    endIndex = (int((len(massList)) / nThreads) * nThreads) - 1
+    endIndex = (int((len(massList)) / nThreads) * nThreads)
     print("End Index: " + str(endIndex))
     massList = massList[0:endIndex]
     xPosList = xPosList[0:endIndex]
