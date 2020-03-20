@@ -138,13 +138,13 @@ elif ((invaderStyle == "Distribution") or (invaderStyle == "distribution")):
 
     # Appending invader from invaderFile
     invaderData = pylab.loadtxt(invaderFile)
-    invaderMassList = data[:,0]
-    invaderXPosList = data[:,1]
-    invaderYPosList = data[:,2]
-    invaderZPosList = data[:,3]
-    invaderXVelList = data[:,1]
-    invaderYVelList = data[:,2]
-    invaderZVelList = data[:,3]
+    invaderMassList = invaderData[:,0]
+    invaderXPosList = invaderData[:,1]
+    invaderYPosList = invaderData[:,2]
+    invaderZPosList = invaderData[:,3]
+    invaderXVelList = invaderData[:,1]
+    invaderYVelList = invaderData[:,2]
+    invaderZVelList = invaderData[:,3]
 
     # Shallow copies for invader z lists
     xPosInvaderList = copy.copy(invaderXPosList)
