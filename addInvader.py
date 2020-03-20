@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Program: addInvader.py
 # Author: Darren Trieu Nguyen
-# Last Modified 3-14-20
+# Last Modified 3-19-20
 # Function: Takes a distribution and appends an invader copy with a given 
 #           position and velocity offset
 
@@ -14,13 +14,17 @@ import numpy as np
 import copy
 
 # Minor CLI argument handling 
-if len(sys.argv) > 3:
+if (len(sys.argv) > 4) \
+    or ((len(sys.argv) > 3) \
+        and ((sys.argv[2] == 'bulge') and sys.argv[2] == 'Bulge')):
     distFile = sys.argv[1]
     invaderStyle = sys.argv[2]
     massMultiplier = float(sys.argv[3])
+    bulgeFile = sys.argv[4]
 else:
-    print('Usage: ' + sys.argv[0] + \
-    ' [Distribution File] [Galaxy/Point] [Mass Multiplier]')
+    print('Usage: ' + sys.argv[0] + ' ' + \
+    '[Distribution File] [Galaxy/Point/Bulge] ' +\
+    '[Mass Multiplier] [Bulge Filename]')
     sys.exit()
 
 # Invader offset constants
@@ -69,7 +73,7 @@ elif ((invaderStyle == "Point") or (invaderStyle == "point")):
     # For CUDA interpretation, cutting out particles to make the distribution
     # a multiple of nThreads (ensuring that the invader stays in the 
     # distribution)
-    endIndex = (int((len(massList)+1) / nThreads) * nThreads) - 1
+    endIndex = (int((len(massList)) / nThreads) * nThreads) - 1
     print("End Index: " + str(endIndex))
     massList = massList[0:endIndex]
     xPosList = xPosList[0:endIndex]
@@ -87,6 +91,52 @@ elif ((invaderStyle == "Point") or (invaderStyle == "point")):
     xVelList = np.append(xVelList, [xVelList[0]])
     yVelList = np.append(yVelList, [yVelList[0]])
     zVelList = np.append(zVelList, [float(zVelList[0]) + zVelOffset])
+
+elif ((invaderStyle == "Bulge") or (invaderStyle == "bulge")):
+
+    print("Bulge invader style chosen, generating invader")
+
+    # Appending bulge from bulgeFile
+    bulgeData = pylab.loadtxt(bulgeFile)
+    bulgeMassList = data[:,0]
+    bulgeXPosList = data[:,1]
+    bulgeYPosList = data[:,2]
+    bulgeZPosList = data[:,3]
+    bulgeXVelList = data[:,1]
+    bulgeYVelList = data[:,2]
+    bulgeZVelList = data[:,3]
+
+    # Shallow copies for invader z lists
+    zPosInvaderList = copy.copy(bulgeZPosList)
+    zVelInvaderList = copy.copy(bulgeZVelList)
+
+    # Applying offset to invader
+    for i, zPos in enumerate(zPosList):
+        zPosInvaderList[i] = bulgeZPosList[i] + zPosOffset
+        zVelInvaderList[i] = bulgeZVelList[i] + zVelOffset
+
+    # Appending bulge to the main distribution
+    massList = np.append(massList, bulgeMassList)
+    xPosList = np.append(xPosList, bulgeXPosList)
+    yPosList = np.append(yPosList, bulgeYPosList)
+    zPosList = np.append(zPosList, zPosInvaderList)
+    xVelList = np.append(xVelList, bulgeXVelList)
+    yVelList = np.append(yVelList, bulgeYVelList)
+    zVelList = np.append(zVelList, zVelInvaderList)
+
+    # For CUDA interpretation, cutting out particles to make the distribution
+    # a multiple of nThreads (ensuring that the invader stays in the 
+    # distribution)
+    endIndex = (int((len(massList)) / nThreads) * nThreads) - 1
+    print("End Index: " + str(endIndex))
+    massList = massList[0:endIndex]
+    xPosList = xPosList[0:endIndex]
+    yPosList = yPosList[0:endIndex]
+    zPosList = zPosList[0:endIndex]
+    xVelList = xVelList[0:endIndex]
+    yVelList = yVelList[0:endIndex]
+    zVelList = zVelList[0:endIndex]
+
 
 # Creating a dataframe out of the distribution arrays
 distFrame = pd.DataFrame(np.column_stack([massList, 

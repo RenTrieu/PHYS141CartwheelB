@@ -68,11 +68,16 @@ runDistribution.sh:
 
 addInvader.py
 
-- Usage: ./addInvader.py [Distribution File] [Galaxy/Point] [Mass Multiplier]
+- Usage: ./addInvader.py [Distribution File] 
+                         [Galaxy/Point/Bulge] 
+                         [Mass Multiplier] [Bulge Filename]
 - Distribution File: Takes in a distribution file (formatted for cudaLeapint)
 - Galaxy/Point: Takes in the style of invader to be appended: Galaxy creates a 
   full galaxy distribution while Point creates a single point mass invader
 - Mass Multiplier: Multiplies all appended invader masses by the specified
   mass multiplier
+- Bulge Filename: If the bulge option is specified then a fourth positional
+  argument is taken, specifying the name of the file containing the bulge
+  distribution to append as an invader
 - Intended for taking in a distribution for a single galaxy and 
   appending an invader within the same distribution file
