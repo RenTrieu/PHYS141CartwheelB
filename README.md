@@ -76,7 +76,9 @@ addInvader.py
 - Invader Style: Takes in the style of invader to be appended:
 
     Copy: Copies the original distribution to be the invader
+
     Point: Creates a point mass to be the invader
+
     Distribution: Takes in a distribution file to create the invader
 
 - Mass Multiplier: Multiplies all appended invader masses by the specified
