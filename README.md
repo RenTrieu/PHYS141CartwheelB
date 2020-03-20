@@ -74,12 +74,16 @@ addInvader.py
 - Do `./addInvader.py -h` for more options details
 - Distribution File: Takes in a distribution file (formatted for cudaLeapint)
 - Invader Style: Takes in the style of invader to be appended:
+
     Copy: Copies the original distribution to be the invader
     Point: Creates a point mass to be the invader
     Distribution: Takes in a distribution file to create the invader
+
 - Mass Multiplier: Multiplies all appended invader masses by the specified
   mass multiplier
 - `--invaderFile`: Distribution file from which to create the invader
+
     Note: This is an optional argument, but must be specified if the invader
           style is Distribution
+
 - Intended for facilitating the appending of an invader into a distribution file
