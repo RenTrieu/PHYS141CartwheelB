@@ -116,7 +116,7 @@ elif ((invaderStyle == "Bulge") or (invaderStyle == "bulge")):
         zVelInvaderList[i] = bulgeZVelList[i] + zVelOffset
 
     # Appending bulge to the main distribution
-    massList = np.append(massList, bulgeMassList)
+    massList = np.append(massList, [i*massMultiplier for i in bulgeMassList])
     xPosList = np.append(xPosList, bulgeXPosList)
     yPosList = np.append(yPosList, bulgeYPosList)
     zPosList = np.append(zPosList, zPosInvaderList)
