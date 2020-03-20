@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # Program: addInvader.py
 # Author: Darren Trieu Nguyen
-# Last Modified 3-19-20
+# Last Modified 3-20-20
 # Function: Takes a distribution and appends an invader copy with a given 
 #           position and velocity offset
 
+import argparse
 import pylab
 import sys
 import os
@@ -13,23 +14,49 @@ import pandas as pd
 import numpy as np
 import copy
 
-# Minor CLI argument handling 
-if (len(sys.argv) > 4) \
-    or ((len(sys.argv) > 3) \
-        and ((sys.argv[2] == 'bulge') and sys.argv[2] == 'Bulge')):
-    distFile = sys.argv[1]
-    invaderStyle = sys.argv[2]
-    massMultiplier = float(sys.argv[3])
-    bulgeFile = sys.argv[4]
-else:
-    print('Usage: ' + sys.argv[0] + ' ' + \
-    '[Distribution File] [Galaxy/Point/Bulge] ' +\
-    '[Mass Multiplier] [Bulge Filename]')
-    sys.exit()
+# CLI argument handling 
+parser = argparse.ArgumentParser(
+    description='Appends an invader to a distribution file'
+)
 
+parser.add_argument('distFile', metavar='file', 
+                    help='Distribution file to which to append an invader')
+parser.add_argument('invaderStyle', default='Copy',
+                    help='Style of the invader: Galaxy/Point/Distribution')
+parser.add_argument('massMultiplier', type=float, default=1.0,
+                    help='Factor by which to multiply all masses in the' \
+                    ' invader distribution')
+parser.add_argument('--invaderFile', metavar='invader',
+                    help='Distribution file containing the invader')
+parser.add_argument('--xPosOffset', type=float, default=0, 
+                    help='Invader x position offset')
+parser.add_argument('--yPosOffset', type=float, default=0, 
+                    help='Invader y position offset')
+parser.add_argument('--zPosOffset', type=float, default=-20, 
+                    help='Invader z position offset')
+parser.add_argument('--xVelOffset', type=float, default=0, 
+                    help='Invader x extra initial velocity')
+parser.add_argument('--yVelOffset', type=float, default=0, 
+                    help='Invader y extra initial velocity')
+parser.add_argument('--zVelOffset', type=float, default=7, 
+                    help='Invader z extra initial velocity')
+
+
+args = parser.parse_args()
+
+# Extracting the arguments 
+distFile = args.distFile
+invaderStyle = args.invaderStyle
+massMultiplier = float(args.massMultiplier)
+invaderFile = args.invaderFile
+            
 # Invader offset constants
-zPosOffset = -20
-zVelOffset = 7
+xPosOffset = args.xPosOffset
+yPosOffset = args.yPosOffset
+zPosOffset = args.zPosOffset
+xVelOffset = args.xVelOffset
+yVelOffset = args.yVelOffset
+zVelOffset = args.zVelOffset
 
 # Threads Constant
 nThreads = 1024
@@ -44,26 +71,38 @@ xVelList = data[:,4]
 yVelList = data[:,5]
 zVelList = data[:,6]
 
-if ((invaderStyle == "Galaxy") or (invaderStyle == "galaxy")):
+if ((invaderStyle == "Copy") or (invaderStyle == "copy")):
 
-    print("Galaxy invader style chosen, generating invader")
+    print("Copy invader style chosen, generating invader")
 
     # Shallow copies for invader z lists
+    xPosInvaderList = copy.copy(xPosList)
+    xVelInvaderList = copy.copy(xVelList)
+
+    yPosInvaderList = copy.copy(yPosList)
+    yVelInvaderList = copy.copy(yVelList)
+
     zPosInvaderList = copy.copy(zPosList)
     zVelInvaderList = copy.copy(zVelList)
 
     # Applying offset to invader
-    for i, zPos in enumerate(zPosList):
-        zPosInvaderList[i] = zPosList[i] + zPosOffset
-        zVelInvaderList[i] = zVelList[i] + zVelOffset
+    for i, zPos in enumerate(zPosInvaderList):
+        xPosInvaderList[i] = invaderXPosList[i] + xPosOffset
+        xVelInvaderList[i] = invaderXVelList[i] + xVelOffset
 
-    # Appending invader to the original arrays
-    massList = np.append(massList, [i*massMultiplier for i in massList])
-    xPosList = np.append(xPosList, xPosList)
-    yPosList = np.append(yPosList, yPosList)
+        yPosInvaderList[i] = invaderYPosList[i] + yPosOffset
+        yVelInvaderList[i] = invaderYVelList[i] + yVelOffset
+
+        zPosInvaderList[i] = invaderZPosList[i] + zPosOffset
+        zVelInvaderList[i] = invaderZVelList[i] + zVelOffset
+
+    # Appending invader to the main distribution
+    massList = np.append(massList, [i*massMultiplier for i in invaderMassList])
+    xPosList = np.append(xPosList, xPosInvaderList)
+    yPosList = np.append(yPosList, yPosInvaderList)
     zPosList = np.append(zPosList, zPosInvaderList)
-    xVelList = np.append(xVelList, xVelList)
-    yVelList = np.append(yVelList, yVelList)
+    xVelList = np.append(xVelList, xVelInvaderList)
+    yVelList = np.append(yVelList, invaderYVelList)
     zVelList = np.append(zVelList, zVelInvaderList)
 
 elif ((invaderStyle == "Point") or (invaderStyle == "point")):
@@ -85,43 +124,56 @@ elif ((invaderStyle == "Point") or (invaderStyle == "point")):
 
     # Appending the invader into the distribution
     massList = np.append(massList, [massMultiplier*sum(massList)])
-    xPosList = np.append(xPosList, [xPosList[0]])
-    yPosList = np.append(yPosList, [yPosList[0]])
+    xPosList = np.append(xPosList, [float(xPosList[0]) + xPosOffset])
+    yPosList = np.append(yPosList, [float(yPosList[0]) + yPosOffset])
     zPosList = np.append(zPosList, [float(zPosList[0]) + zPosOffset])
-    xVelList = np.append(xVelList, [xVelList[0]])
-    yVelList = np.append(yVelList, [yVelList[0]])
+    xVelList = np.append(xVelList, [float(xVelList[0]) + xVelOffset])
+    yVelList = np.append(yVelList, [float(yVelList[0]) + yVelOffset])
     zVelList = np.append(zVelList, [float(zVelList[0]) + zVelOffset])
 
-elif ((invaderStyle == "Bulge") or (invaderStyle == "bulge")):
+elif ((invaderStyle == "Distribution") or (invaderStyle == "distribution")):
 
-    print("Bulge invader style chosen, generating invader")
+    print("Distribution invader style chosen, appending distribution from "
+          + str(invaderFile))
 
-    # Appending bulge from bulgeFile
-    bulgeData = pylab.loadtxt(bulgeFile)
-    bulgeMassList = data[:,0]
-    bulgeXPosList = data[:,1]
-    bulgeYPosList = data[:,2]
-    bulgeZPosList = data[:,3]
-    bulgeXVelList = data[:,1]
-    bulgeYVelList = data[:,2]
-    bulgeZVelList = data[:,3]
+    # Appending invader from invaderFile
+    invaderData = pylab.loadtxt(invaderFile)
+    invaderMassList = data[:,0]
+    invaderXPosList = data[:,1]
+    invaderYPosList = data[:,2]
+    invaderZPosList = data[:,3]
+    invaderXVelList = data[:,1]
+    invaderYVelList = data[:,2]
+    invaderZVelList = data[:,3]
 
     # Shallow copies for invader z lists
-    zPosInvaderList = copy.copy(bulgeZPosList)
-    zVelInvaderList = copy.copy(bulgeZVelList)
+    xPosInvaderList = copy.copy(invaderXPosList)
+    xVelInvaderList = copy.copy(invaderXVelList)
+
+    yPosInvaderList = copy.copy(invaderYPosList)
+    yVelInvaderList = copy.copy(invaderYVelList)
+
+    zPosInvaderList = copy.copy(invaderZPosList)
+    zVelInvaderList = copy.copy(invaderZVelList)
 
     # Applying offset to invader
-    for i, zPos in enumerate(zPosList):
-        zPosInvaderList[i] = bulgeZPosList[i] + zPosOffset
-        zVelInvaderList[i] = bulgeZVelList[i] + zVelOffset
+    for i, zPos in enumerate(zPosInvaderList):
+        xPosInvaderList[i] = invaderXPosList[i] + xPosOffset
+        xVelInvaderList[i] = invaderXVelList[i] + xVelOffset
 
-    # Appending bulge to the main distribution
-    massList = np.append(massList, [i*massMultiplier for i in bulgeMassList])
-    xPosList = np.append(xPosList, bulgeXPosList)
-    yPosList = np.append(yPosList, bulgeYPosList)
+        yPosInvaderList[i] = invaderYPosList[i] + yPosOffset
+        yVelInvaderList[i] = invaderYVelList[i] + yVelOffset
+
+        zPosInvaderList[i] = invaderZPosList[i] + zPosOffset
+        zVelInvaderList[i] = invaderZVelList[i] + zVelOffset
+
+    # Appending invader to the main distribution
+    massList = np.append(massList, [i*massMultiplier for i in invaderMassList])
+    xPosList = np.append(xPosList, xPosInvaderList)
+    yPosList = np.append(yPosList, yPosInvaderList)
     zPosList = np.append(zPosList, zPosInvaderList)
-    xVelList = np.append(xVelList, bulgeXVelList)
-    yVelList = np.append(yVelList, bulgeYVelList)
+    xVelList = np.append(xVelList, xVelInvaderList)
+    yVelList = np.append(yVelList, invaderYVelList)
     zVelList = np.append(zVelList, zVelInvaderList)
 
     # For CUDA interpretation, cutting out particles to make the distribution
@@ -136,7 +188,6 @@ elif ((invaderStyle == "Bulge") or (invaderStyle == "bulge")):
     xVelList = xVelList[0:endIndex]
     yVelList = yVelList[0:endIndex]
     zVelList = zVelList[0:endIndex]
-
 
 # Creating a dataframe out of the distribution arrays
 distFrame = pd.DataFrame(np.column_stack([massList, 

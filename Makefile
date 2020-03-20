@@ -14,8 +14,13 @@ clean:
 	rm cudaLeapint
 	rm diskDist_diskInvader
 	rm *.txt
-	rm *.csv
+	rm SinglePoints/*.png
+veryclean:
+	rm cudaLeapint
+	rm diskDist_diskInvader
+	rm *.txt
 	rm -rf SinglePoints/
+	rm *.csv
 plot: run initDiskGalaxy_forDarrensCudaNBodySim.txt
 	./animateDensity.py initDiskGalaxy_forDarrensCudaNBodySim.txt
 	./animateDensity.py massInvaderSim.txt
