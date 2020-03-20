@@ -1,5 +1,23 @@
 # PHYS 141 Cartwheel B
 
+Quickstart:
+-----------
+
+1. Run `make compile`.
+2. Run `./runDistribution.sh <Distribution File>`
+
+Dependencies:
+-------------
+
+Python3:
+
+- numpy
+- pandas
+- pylab
+- matplotlib
+- imageio
+- ffmpy
+
 CUDA N-Body:
 ------------
 
