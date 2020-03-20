@@ -173,7 +173,7 @@ elif ((invaderStyle == "Distribution") or (invaderStyle == "distribution")):
     yPosList = np.append(yPosList, yPosInvaderList)
     zPosList = np.append(zPosList, zPosInvaderList)
     xVelList = np.append(xVelList, xVelInvaderList)
-    yVelList = np.append(yVelList, invaderYVelList)
+    yVelList = np.append(yVelList, yVelInvaderList)
     zVelList = np.append(zVelList, zVelInvaderList)
 
     # For CUDA interpretation, cutting out particles to make the distribution
