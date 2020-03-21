@@ -107,3 +107,23 @@ addInvader.py
           style is Distribution
 
 - Intended for facilitating the appending of an invader into a distribution file
+
+Assignment Citations:
+---------------------
+
+This assignment was given by Professor Julius Kuti at UCSD.
+
+Distributions were generated using the galactics package shown here:
+- https://courses.physics.ucsd.edu/2020/Winter/physics141/midterm-final/midterm-final.html
+
+Other References:
+
+- courses.physics.ucsd.edu/2020/Winter/physics141/Labs/Lab5/Plummer_Labnote.pdf
+- Athanassoula, E & Puerari, I & Bosma, A 1995 'Formation of rings in galactic 
+  disks by infalling small companions’, Royal Astronomical Society, 
+  286, 284-302
+- Lynds, R & Toomre, A 1976, 
+  'On the Interpretation of Ring Galaxies: The Binary Ring System II Hz 4', 
+  The Astrophysics Journal, 209:382-388
+
+
