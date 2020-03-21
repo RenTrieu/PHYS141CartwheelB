@@ -132,7 +132,7 @@ int main(int argc, char **argv)
 
     /* next, set integration parameters */
 
-    mstep = 500;                      /* number of steps to take  */
+    mstep = 700;                      /* number of steps to take  */
     nout = 1;                         /* steps between outputs    */
     dt = 0.02;                        /* timestep for integration */
 
